@@ -1,0 +1,7 @@
+env:
+  PROJECT_ID: {{ .Values.gcpProject }}
+  ENCRYPTION_KEY: {{ .Values.secretManager.encryptionKey }}
+
+serviceAccount:
+  annotations:
+    iam.gke.io/gcp-service-account: {{ default .Release.Name .Values.serviceAccount.gcpServiceAccountName }}@{{ default .Values.gcpProject .Values.serviceAccount.gcpProject }}.iam.gserviceaccount.com

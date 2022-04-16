@@ -1,0 +1,66 @@
+env:
+  PROJECT_ID: {{ .Values.gcpProject }}
+  NODE_ENV: "environment"
+  APP_NAME: "app_id"
+  APP_RUNNING_PROFILE: "app_running_profile"
+  APP_SERVER_PORT: "8083"
+  DEBUG: "false"
+  MYSQL_HOST: "127.0.0.1"
+  MYSQL_PORT: "3306"
+  MYSQL_DATABASE: "{{ .Values.main_database_name }}"
+  CRYPTO_URL: "http://prodoscore-crypto:8000"
+  APP_ENGINE_URL: "prodosocore-app"
+  SECRET_KEY_8X8_CLIENT: "{{ .Values.secretManager.ebeClient }}"
+  SECRET_KEY_DIALPAD_CLIENT: "{{ .Values.secretManager.dialpadClient }}"
+  SECRET_KEY_ZOOM_CLIENT: "{{ .Values.secretManager.zoomClient }}"
+  SECRET_KEY_VBC_CLIENT: "{{ .Values.secretManager.vbcClient }}"
+  SECRET_KEY_RINGCENTRAL_CLIENT: "{{ .Values.secretManager.ringcentralClient }}"
+  SECRET_KEY_GTC_CLIENT: "{{ .Values.secretManager.gtcClient }}"
+  SECRET_KEY_BULLHORN_CLIENT: "{{ .Values.secretManager.bullhornClient }}"
+  SECRET_KEY_CRELATE_CLIENT: "{{ .Values.secretManager.crelateClient }}"
+  SECRET_KEY_DYNAMICS_CLIENT: "{{ .Values.secretManager.dynamicsClient }}"
+  SECRET_KEY_FRESHDESK_CLIENT: "{{ .Values.secretManager.freshdeskClient }}"
+  SECRET_KEY_PROSPERWORKS_CLIENT: "{{ .Values.secretManager.prosperworksClient }}"
+  SECRET_KEY_SALESFORCE_CLIENT: "{{ .Values.secretManager.salesforceClient }}"
+  SECRET_KEY_SUGAR_CLIENT: "{{ .Values.secretManager.sugarClient }}"
+  SECRET_KEY_ZOHO_CLIENT: "{{ .Values.secretManager.zohoClient }}"
+  SECRET_KEY_BOX_CLIENT: "{{ .Values.secretManager.boxClient }}"
+  SECRET_KEY_CARGOWISE_CLIENT: "{{ .Values.secretManager.cargowiseClient }}"
+  SECRET_KEY_WEBEX_CLIENT: "{{ .Values.secretManager.webexClient }}"
+  SECRET_KEY_DROPBOX_CLIENT: "{{ .Values.secretManager.dropboxClient }}"
+  DATABASE_USERNAME: "root"
+  DATABASE_PASSWORD: "Germany1"
+
+serviceAccount:
+  annotations:
+    iam.gke.io/gcp-service-account: {{ default .Release.Name .Values.serviceAccount.gcpServiceAccountName }}@{{ default .Values.gcpProject .Values.serviceAccount.gcpProject }}.iam.gserviceaccount.com
+
+addtionalContainers:
+- name: cloud-sql-proxy
+  # It is recommended to use the latest version of the Cloud SQL proxy
+  # Make sure to update on a regular schedule!
+  image: gcr.io/cloudsql-docker/gce-proxy:1.29.0
+  command:
+    - "/cloud_sql_proxy"
+    #
+    # If connecting from a VPC-native GKE cluster, you can use the
+    # following flag to have the proxy connect over private IP
+    # - "-ip_address_types=PRIVATE"
+    #
+    # Replace DB_PORT with the port the proxy should listen on
+    # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
+    - "-instances={{ .Values.cloudSQLDatabase.gcpProject }}:{{ .Values.cloudSQLDatabase.region }}:{{ .Values.cloudSQLDatabase.instanceName }}=tcp:3306"
+  securityContext:
+    # The default Cloud SQL proxy image runs as the
+    # "nonroot" user and group (uid: 65532) by default.
+    runAsNonRoot: true
+  resources:
+    requests:
+      # The proxy's memory use scales linearly with the number of active
+      # connections. Fewer open connections will use less memory. Adjust
+      # this value based on your application's requirements.
+      memory: "2Gi"
+      # The proxy's CPU use scales linearly with the amount of IO between
+      # the database and the application. Adjust this value based on your
+      # application's requirements.
+      cpu:    "1"

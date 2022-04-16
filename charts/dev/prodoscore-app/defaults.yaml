@@ -1,0 +1,10 @@
+serviceAccount:
+  name: "test"
+  gcpProject: ""
+  gcpServiceAccountName: ""
+
+
+cloudSQLDatabase:
+  instanceName: "prodo-app"
+  region: "us-central1"
+  gcpProject: ""
