@@ -1,8 +1,8 @@
 env:
   PROJECT_ID: {{ .Values.gcpProject }}
-  DEPLOYMENT_ENV: {{ .Values.deploymentEnv }}
-  REDISHOST: {{ .Values.redis.host }}
-  DATABASE_PASSWORD: "Germany1"
+  NODE_ENV: {{ .Values.env_id }}
+  NOTIFY_URL: ""
+  DATASTORE_PROJECT: {{ default .Values.gcpProject .Values.cloudDatastore.gcpProject }}
 
 serviceAccount:
   annotations:

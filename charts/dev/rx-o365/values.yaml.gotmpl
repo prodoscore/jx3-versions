@@ -1,0 +1,8 @@
+env:
+  PROJECT_ID: {{ .Values.gcpProject }}
+  NODE_ENV: {{ .Values.env_id }}
+  NOTIFY_URL: "https://{{ .Values.o365Host }}/notify"
+
+serviceAccount:
+  annotations:
+    iam.gke.io/gcp-service-account: {{ default .Release.Name .Values.serviceAccount.gcpServiceAccountName }}@{{ default .Values.gcpProject .Values.serviceAccount.gcpProject }}.iam.gserviceaccount.com

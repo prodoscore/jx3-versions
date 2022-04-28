@@ -1,8 +1,8 @@
 env:
   PROJECT_ID: {{ .Values.gcpProject }}
-  DEPLOYMENT_ENV: {{ .Values.deploymentEnv }}
+  NODE_ENV: {{ .Values.env_id }}
   REDISHOST: {{ .Values.redis.host }}
-  DATABASE_PASSWORD: "Germany1"
+  NOTIFY_URL: "https://{{ .Values.o365Host }}/notify"
 
 serviceAccount:
   annotations:

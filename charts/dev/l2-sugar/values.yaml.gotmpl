@@ -1,8 +1,6 @@
 env:
   PROJECT_ID: {{ .Values.gcpProject }}
-  REDISHOST: {{ .Values.redis.host }}
   ENCRYPTION_KEY: {{ .Values.secretManager.encryptionKey }}
-  DATASTORE_PROJECT_ID: {{ default .Values.gcpProject .Values.cloudDatastore.gcpProject }}
 
 serviceAccount:
   annotations:

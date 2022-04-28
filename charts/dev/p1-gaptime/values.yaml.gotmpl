@@ -1,8 +1,7 @@
 env:
   PROJECT_ID: {{ .Values.gcpProject }}
-  DEPLOYMENT_ENV: {{ .Values.deploymentEnv }}
+  APP_RUNNING_ENV: {{ .Values.env_id }}
   REDISHOST: {{ .Values.redis.host }}
-  DATABASE_PASSWORD: "Germany1"
 
 serviceAccount:
   annotations:
