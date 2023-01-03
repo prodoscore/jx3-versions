@@ -229,7 +229,37 @@ fi
 
 if [ -z "$JX_TEST_COMMAND" ]
 then
-  export JX_TEST_COMMAND="jx test create -f /workspace/source/.lighthouse/jenkins-x/bdd/$TERRAFORM_FILE --verify-result"
+    # Work around since new version of terraform operator doesn't create job as is expected by jx test
+    jxTestCommand() {
+        jx test create -f /workspace/source/.lighthouse/jenkins-x/bdd/$TERRAFORM_FILE --no-watch-job
+        tf_resource=tf-${REPO_NAME}-pr${PULL_NUMBER}-${JOB_NAME}-${BUILD_NUMBER}
+        aborttime=$(( $(date +%s) + 3600 ))
+        while kubectl get terraforms.tf.isaaguilar.com $tf_resource -ojsonpath='{.status.phase}' | grep -vq completed
+        do
+            if [[ $(date +%s) > $aborttime ]]
+            then
+              echo Timed out waiting for terraform resource $tf_resource
+              exit 11
+            fi
+            for pod in $(kubectl get po --sort-by '{.metadata.creationTimestamp}' --field-selector=status.phase=Running -l terraforms.tf.isaaguilar.com/resourceName=$tf_resource -oname)
+            do
+                echo Showing log for $pod
+                kubectl logs -f $pod | tee saved_log || true
+                grep --text "^POD RESULT:" saved_log >> pod_results || true
+            done
+            sleep 10
+            for pod in $(kubectl get po --sort-by '{.metadata.creationTimestamp}' --field-selector=status.phase=Failed -l terraforms.tf.isaaguilar.com/resourceName=$tf_resource -oname)
+            do
+              echo Pod $pod has failed
+              exit 5
+            done
+        done
+        # Verifying that the last pod result is OK
+        tail -n 1 pod_results | grep -q OK && echo Test has succeeded
+    }
+    # Declare show the function for debugging purposes
+    declare -f jxTestCommand
+    export JX_TEST_COMMAND=jxTestCommand
 fi
 
 echo "testing terraform with: $JX_TEST_COMMAND"
@@ -238,3 +268,10 @@ export TF_VAR_gcp_project=$PROJECT_ID
 export TF_VAR_cluster_name=$CLUSTER_NAME
 
 $JX_TEST_COMMAND
+
+# Needs a new token to delete repo
+# $JX_SCM auth refresh -h github.com -s delete_repo
+# echo "Deleting cluster git repo: ${GH_HOST}${GH_OWNER}/cluster-$CLUSTER_NAME-dev"
+# $JX_SCM repo delete ${GH_HOST}${GH_OWNER}/cluster-$CLUSTER_NAME-dev --confirm
+# echo "Deleting infra repo: ${GH_HOST}${GH_OWNER}/infra-$CLUSTER_NAME-dev"
+# $JX_SCM repo delete ${GH_HOST}${GH_OWNER}/infra-$CLUSTER_NAME-dev --confirm
